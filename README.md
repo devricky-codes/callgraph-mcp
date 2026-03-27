@@ -8,31 +8,26 @@ Powered by [`@codeflow-map/core`](https://www.npmjs.com/package/@codeflow-map/co
 
 **Supports:** TypeScript · JavaScript · TSX · JSX · Python · Go
 
----
-
-## Quick Start (VS Code Copilot)
-
-Add this to `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "flowmap": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "callgraph-mcp"]
-    }
-  }
-}
-```
-
-VS Code starts and stops the server automatically.
+> **Bundled grammars:** TypeScript, JavaScript, TSX, JSX, Python, and Go grammars are included. After install, they are available in `callgraph-mcp/grammars`.
 
 ---
+
+## Why Deterministic Analysis Matters
+
+Most AI coding tools answer structural questions about your codebase by reading source files as text and reasoning over them. This causes three compounding failure modes:
+
+- **Hallucination.** When asked "what calls `processPayment`?", a model without structural grounding will guess based on naming patterns and training priors. It will confidently name callers that don't exist and miss ones that do.
+- **Lost in the middle.** Research shows that LLMs systematically fail to recall information from the middle of long contexts. Paste a 200-file codebase into context and the model will answer based on whatever happened to land near the top or bottom.
+- **Attention dilution.** Even when information is present, spreading the model's attention across tens of thousands of lines means each individual fact gets less weight. A critical edge in the call graph competed for attention with everything else.
+
+**callgraph-mcp eliminates all three.** It never reads your code as prose. It parses every file into an AST using Tree-sitter, builds an exact directed call graph, and answers structural queries against that graph. Every caller, every callee, every reachable function, every cycle - returned as a precise index. The answer is always the same regardless of how large your codebase is, which files happen to be in context, or how deeply buried a function is. **There is no probability involved. There is no attention to dilute.**
+
+---
+
 
 ## Setup
 
-### Option 1 — VS Code Copilot via `npx` (no install required)
+### Option 1 — VS Code via `npx` (no install required)
 
 Add to your project's `.vscode/mcp.json`:
 
@@ -51,85 +46,11 @@ Add to your project's `.vscode/mcp.json`:
 }
 ```
 
-VS Code starts and stops the server automatically. WASM grammars are bundled — no environment variables needed.
+Start the server in your editor. WASM grammars are bundled — no environment variables needed.
 
-> **Tip:** Create `.vscode/mcp.json` via the Command Palette → **MCP: Add Server** → **stdio**.
+> **Tip:** Create `.vscode/mcp.json` via the Command Palette -> **MCP: Add Server** -> **stdio**.
 
-### Option 2 — Global install
-
-```bash
-npm install -g callgraph-mcp
-```
-
-```json
-{
-  "servers": {
-    "flowmap": {
-      "type": "stdio",
-      "command": "callgraph-mcp",
-      "env": {
-        "FLOWMAP_TRANSPORT": "stdio"
-      }
-    }
-  }
-}
-```
-
-### Option 3 — Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-```json
-{
-  "mcpServers": {
-    "flowmap": {
-      "command": "npx",
-      "args": ["-y", "callgraph-mcp"],
-      "env": {
-        "FLOWMAP_TRANSPORT": "stdio"
-      }
-    }
-  }
-}
-```
-
-### Option 4 — Cursor
-
-Add to your project's `.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "flowmap": {
-      "command": "npx",
-      "args": ["-y", "callgraph-mcp"],
-      "env": {
-        "FLOWMAP_TRANSPORT": "stdio"
-      }
-    }
-  }
-}
-```
-
-### Option 5 — Cline
-
-Add to your Cline MCP settings (commonly `cline_mcp_settings.json`):
-
-```json
-{
-  "mcpServers": {
-    "flowmap": {
-      "command": "npx",
-      "args": ["-y", "callgraph-mcp"],
-      "env": {
-        "FLOWMAP_TRANSPORT": "stdio"
-      }
-    }
-  }
-}
-```
-
-### Option 6 — HTTP-SSE (shared or remote server)
+### Option 2 — HTTP-SSE (shared or remote server)
 
 Use `FLOWMAP_TRANSPORT=http` for HTTP-SSE compatible clients.
 
@@ -154,173 +75,107 @@ Then point your client at it:
 }
 ```
 
----
-
-## Configure Environment Variables
-
-Use one of the following approaches depending on your client.
-
-### In VS Code `.vscode/mcp.json`
-
-```json
-{
-  "servers": {
-    "flowmap": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "callgraph-mcp"],
-      "env": {
-        "FLOWMAP_TRANSPORT": "http",
-        "FLOWMAP_PORT": "3100",
-        "FLOWMAP_GRAMMARS": "/absolute/path/to/grammars"
-      }
-    }
-  }
-}
-```
-
-### In Claude Desktop config
-
-```json
-{
-  "mcpServers": {
-    "flowmap": {
-      "command": "npx",
-      "args": ["-y", "callgraph-mcp"],
-      "env": {
-        "FLOWMAP_TRANSPORT": "stdio",
-        "FLOWMAP_GRAMMARS": "/absolute/path/to/grammars"
-      }
-    }
-  }
-}
-```
-
-### In Cursor `.cursor/mcp.json`
-
-```json
-{
-  "mcpServers": {
-    "flowmap": {
-      "command": "npx",
-      "args": ["-y", "callgraph-mcp"],
-      "env": {
-        "FLOWMAP_TRANSPORT": "stdio",
-        "FLOWMAP_GRAMMARS": "/absolute/path/to/grammars"
-      }
-    }
-  }
-}
-```
-
-### In Cline MCP settings
-
-```json
-{
-  "mcpServers": {
-    "flowmap": {
-      "command": "npx",
-      "args": ["-y", "callgraph-mcp"],
-      "env": {
-        "FLOWMAP_TRANSPORT": "stdio",
-        "FLOWMAP_GRAMMARS": "/absolute/path/to/grammars"
-      }
-    }
-  }
-}
-```
-
-### In your shell for one-off runs
-
-macOS / Linux:
-
-```bash
-FLOWMAP_TRANSPORT=http FLOWMAP_PORT=3100 npx callgraph-mcp
-```
-
-Windows PowerShell:
-
-```powershell
-$env:FLOWMAP_TRANSPORT="http"
-$env:FLOWMAP_PORT="3100"
-npx callgraph-mcp
-```
-
----
-
 ## Tools Reference
 
-| Tool | Required params | Optional | What it returns |
-|------|----------------|----------|-----------------|
-| `flowmap_analyze_workspace` | `workspacePath` | `exclude`, `language` | Full call graph: all nodes, edges, flows, orphans |
-| `flowmap_analyze_file` | `filePath` | — | Functions and call sites in a single file |
-| `flowmap_get_callers` | `functionName`, `workspacePath` | — | Every function across the workspace that directly calls the named function |
-| `flowmap_get_callees` | `functionName`, `workspacePath` | — | Every function the named function directly calls |
-| `flowmap_get_flow` | `functionName`, `workspacePath` | `maxDepth` (default 10) | Full BFS subgraph reachable from a function — the complete execution path |
-| `flowmap_list_entry_points` | `workspacePath` | — | All entry points: mains, route handlers, CLI commands, React roots |
-| `flowmap_find_orphans` | `workspacePath` | — | Functions unreachable from any entry point — potential dead code |
+Optional parameters shown in `[brackets]`.
 
-**`workspacePath`** is the absolute path to the repository root (e.g. `/home/user/my-project` or `C:\projects\my-app`).
+<table>
+<colgroup><col width="22%"><col width="38%"><col width="40%"></colgroup>
+<thead><tr><th>Tool</th><th>Parameters</th><th>Returns</th></tr></thead>
+<tbody>
+<tr><td><code>flowmap_analyze_workspace</code></td><td><code>workspacePath</code>, [<code>exclude</code>], [<code>language</code>]</td><td>Full call graph: nodes, edges, flows, orphans</td></tr>
+<tr><td><code>flowmap_analyze_file</code></td><td><code>filePath</code></td><td>Functions and call sites in one file</td></tr>
+<tr><td><code>flowmap_get_callers</code></td><td><code>functionName</code>, <code>workspacePath</code></td><td>Direct callers of the function</td></tr>
+<tr><td><code>flowmap_get_callees</code></td><td><code>functionName</code>, <code>workspacePath</code></td><td>Functions the named function calls</td></tr>
+<tr><td><code>flowmap_get_flow</code></td><td><code>functionName</code>, <code>workspacePath</code>, [<code>maxDepth</code>=10]</td><td>Full BFS subgraph reachable from a function</td></tr>
+<tr><td><code>flowmap_list_entry_points</code></td><td><code>workspacePath</code></td><td>Mains, route handlers, CLI commands, React roots</td></tr>
+<tr><td><code>flowmap_find_orphans</code></td><td><code>workspacePath</code></td><td>Functions unreachable from any entry point</td></tr>
+<tr><td><code>flowmap_find_cycles</code></td><td><code>workspacePath</code>, [<code>minCycleLength</code>], [<code>exclude</code>]</td><td>All circular call chains with exact edges</td></tr>
+<tr><td><code>flowmap_find_duplicates</code> <em>(experimental)</em></td><td><code>workspacePath</code>, [<code>similarityThreshold</code>=0.75], [<code>minCallees</code>=2], [<code>exclude</code>]</td><td>Function clusters with similar callee sets</td></tr>
+</tbody>
+</table>
+
+**`workspacePath`** — absolute path to the repo root (e.g. `/home/user/my-project` or `C:\projects\my-app`).
 
 ---
 
 ## Environment Variable Reference
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FLOWMAP_TRANSPORT` | `stdio` | Transport mode: `stdio` or `http` (`http` is used for HTTP-SSE clients) |
-| `FLOWMAP_PORT` | `3100` | HTTP server port (only used for `http` transport) |
-| `FLOWMAP_GRAMMARS` | *(bundled)* | Override path to Tree-sitter WASM grammar files |
+<table>
+<colgroup><col width="22%"><col width="15%"><col width="63%"></colgroup>
+<thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>FLOWMAP_TRANSPORT</code></td><td><code>stdio</code></td><td><code>stdio</code> or <code>http</code></td></tr>
+<tr><td><code>FLOWMAP_PORT</code></td><td><code>3100</code></td><td>HTTP port (http transport only)</td></tr>
+<tr><td><code>FLOWMAP_GRAMMARS</code></td><td><em>(bundled)</em></td><td>Override path to WASM grammar files</td></tr>
+<tr><td><code>FLOWMAP_DUP_THRESHOLD</code></td><td><code>0.75</code></td><td>Jaccard similarity threshold for <code>find_duplicates</code> (0–1)</td></tr>
+<tr><td><code>FLOWMAP_DUP_MIN_CALLEES</code></td><td><code>2</code></td><td>Min callee count for <code>find_duplicates</code></td></tr>
+</tbody>
+</table>
 
 ---
 
 ## Example Use Cases
 
-### Explore an unfamiliar codebase
+---
 
-> *"I just cloned this repo. Walk me through where execution starts and what the main flows are."*
+### PR review and change safety
 
-The agent calls `flowmap_list_entry_points` to find where code begins, then `flowmap_get_flow` on each entry point to trace the full execution paths. It can describe the architecture without reading every file.
+> *"I just modified `processPayment`. Without reading any code, tell me every function that could break and rank them by how many hops away they are from the change."*
+
+The agent calls `flowmap_get_callers("processPayment", workspacePath)` for the direct impact radius (1 hop), then recursively traverses callers-of-callers to build a ranked list by distance.
 
 ---
 
-### Understand the impact of a change before making it
+> *"We're about to merge a PR that touches `validateCart`. Give me an impact report — what's the worst case if this function throws."*
 
-> *"I need to change the signature of `processPayment`. What will break?"*
-
-The agent calls `flowmap_get_callers("processPayment", workspacePath)` to get every call site across the entire codebase — with file paths and line numbers — so it knows exactly what needs updating before touching anything.
+The agent calls `flowmap_get_flow("validateCart", workspacePath)` to map every function reachable downstream, then `flowmap_get_callers("validateCart", workspacePath)` to map every upstream caller.
 
 ---
 
-### Safe refactoring — find what to clean up
+### Architecture problems
 
-> *"We're doing a big cleanup. What functions are safe to delete?"*
+> *"Which functions in this codebase are architectural nasty-surprises — called by everything but calling a lot themselves. I want names, file paths, and exact counts."*
 
-The agent calls `flowmap_find_orphans(workspacePath)`. Functions with zero reachability from entry points and not exported are strong deletion candidates. Combined with `flowmap_get_callers` for verification, this gives a confident dead-code list.
-
----
-
-### Trace a bug through the call chain
-
-> *"The `submitOrder` function is failing. What does it call, and what does each of those call?"*
-
-The agent calls `flowmap_get_flow("submitOrder", workspacePath, maxDepth: 5)` to get the full downstream call tree — showing exactly which functions are in the execution path and which files they live in.
+The agent calls `flowmap_analyze_workspace(workspacePath)` to get the full graph, then filters for nodes with high in-degree (many callers) and high out-degree (many callees). These are the structural chokepoints — functions where a bug propagates in both directions. Returned with exact counts. No approximation.
 
 ---
 
-### PR review — understand what changed
+> *"Find every cycle in the call graph. For each one tell me which file I should break the dependency in to resolve it cleanly."*
 
-> *"This PR modifies `validateUser`. What's the blast radius?"*
-
-The agent calls `flowmap_get_callers("validateUser", workspacePath)` to enumerate every caller, then `flowmap_get_flow("validateUser", workspacePath)` to show all downstream dependency. It can summarise the risk surface of the change deterministically.
+The agent calls `flowmap_find_cycles(workspacePath)`. Each cycle is returned as an ordered list of functions with file paths and the exact call edges forming the loop — no post-processing needed. Because the graph is exact, cycle membership is exact — not a guess about which modules "seem" circular.
 
 ---
 
-### Understand a single file before editing it
+### Dead code and cleanup
 
-> *"What does `src/auth/middleware.ts` export and what does it call?"*
+> *"I want to delete code safely. Give me every function that is provably unreachable — not called by anything, not an entry point. Include file and line number."*
 
-The agent calls `flowmap_analyze_file("/abs/path/to/src/auth/middleware.ts")` to get a precise list of every function, its parameters, return type, and all outgoing calls — without needing to read the file itself.
+The agent calls `flowmap_find_orphans(workspacePath)`. This returns every function not reachable from any entry point in the call graph — with file path and line number for each one. 
+
+---
+
+### Onboarding
+
+> *"I just joined this team. Walk me through this codebase starting from the entry points — explain each major flow in plain English without me having to read a single file."*
+
+The agent calls `flowmap_list_entry_points(workspacePath)` to find every main, route handler, CLI command, and React root. Then it calls `flowmap_get_flow` on each one to trace the execution.
+
+---
+
+### Refactoring
+
+> *"I want to extract the payment logic into its own module. Based purely on call relationships, which functions naturally belong together and which ones would need to stay behind."*
+
+The agent calls `flowmap_analyze_workspace(workspacePath)` and uses the graph to find the connected component of functions reachable from payment-related entry points. 
+
+---
+
+### AI agent review
+
+> *"Cursor just made changes across 14 files. Based on what it touched, what else in the codebase should I be nervous about that it didn't touch."*
+
+The agent calls `flowmap_get_callers` for each modified function and `flowmap_get_flow` for each modified function. The union of those results — minus the files already touched — is the set of functions that depend on the changes but weren't updated. These are the places where silent breakage is most likely. Returned as a precise list, not a guess about what "might be related".
 
 ---
 
@@ -333,29 +188,21 @@ When an agent is generating new code, it can call `flowmap_analyze_workspace` be
 
 ---
 
-## Example Prompts for VS Code Copilot
+### Catching agent-introduced duplication before it compounds
 
-```
-List all entry points in this workspace
-```
-```
-What functions call `buildCallGraph` anywhere in the codebase?
-```
-```
-Show me the full execution path starting from `startServer`, up to 6 levels deep
-```
-```
-Find all dead code — functions that are never reached from any entry point
-```
-```
-What does `parseFile` directly depend on?
-```
-```
-I'm changing `connectDb`. Who calls it? Give me file paths and line numbers.
-```
-```
-Analyze just src/api/routes.ts and tell me what it exports and what it calls
-```
+> *"We've been using an AI agent to build this codebase for 3 months. How much logic has it silently duplicated?"*
+
+Agents optimize for the current instruction, not long-term architecture. It copies, tweaks slightly, and moves on. It satisfied the local goal.
+
+The agent calls `flowmap_find_duplicates(workspacePath)`. Each cluster in the result is a group of functions with different names — often in different components — that call the same set of dependencies. 
+
+---
+
+### Detecting circular dependencies introduced by agent-generated code
+
+> *"The agent has been adding features for weeks. Are there any circular call dependencies I should know about before this becomes a production problem?"*
+
+The agent calls `flowmap_find_cycles(workspacePath)`. Every cycle is returned with the exact functions involved.
 
 ---
 
@@ -375,8 +222,8 @@ Files are parsed in parallel batches of 50. Results are cached for 30 seconds �
 
 - [VS Code Extension (CallSight)](https://marketplace.visualstudio.com/items?itemName=devricky-codes.callsight)
 - [Core Package (@codeflow-map/core)](https://www.npmjs.com/package/@codeflow-map/core)
-- [Source Code](https://github.com/devricky-codes/callsight-vscode)
-- [Report Issues](https://github.com/devricky-codes/callsight-vscode/issues)
+- [Source Code](https://github.com/devricky-codes/callgraph-mcp)
+- [Report Issues](https://github.com/devricky-codes/callgraph-mcp)
 
 ## License
 

@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import {
   parseFile,
   buildCallGraph,
@@ -21,14 +22,33 @@ export function resolveWasmDir(): string {
   if (process.env.FLOWMAP_GRAMMARS) {
     return process.env.FLOWMAP_GRAMMARS;
   }
-  // 2. Bundled grammars in the published package: dist/utils/analysis.js → ../../grammars
-  //    __dirname = <package-root>/dist/utils  →  <package-root>/grammars
-  return path.resolve(__dirname, '..', '..', 'grammars');
+
+  const candidates = [
+    // Bundled runtime: dist/index.js => <package-root>/grammars
+    path.resolve(__dirname, '..', 'grammars'),
+    // Dev/tsc layout: src/utils or dist/utils => <package-root>/grammars
+    path.resolve(__dirname, '..', '..', 'grammars'),
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(path.join(candidate, 'tree-sitter.wasm'))) {
+      return candidate;
+    }
+  }
+
+  // Last-resort fallback keeps previous behavior for unexpected layouts.
+  return candidates[0];
 }
 
 async function ensureTreeSitter(): Promise<void> {
   if (!treeSitterInitialized) {
-    await initTreeSitter(resolveWasmDir());
+    const wasmDir = resolveWasmDir();
+    const wasmPath = path.join(wasmDir, 'tree-sitter.wasm');
+    const wasmExists = fs.existsSync(wasmPath);
+    console.error(
+      `[flowmap] Grammar directory: ${wasmDir} (tree-sitter.wasm ${wasmExists ? 'found' : 'missing'})`,
+    );
+    await initTreeSitter(wasmDir);
     treeSitterInitialized = true;
   }
 }

@@ -10,6 +10,8 @@ import { registerGetCallees } from './tools/getCallees';
 import { registerGetFlow } from './tools/getFlow';
 import { registerListEntryPoints } from './tools/listEntryPoints';
 import { registerFindOrphans } from './tools/findOrphans';
+import { registerFindCycles } from './tools/findCycles';
+import { registerFindDuplicates } from './tools/findDuplicates';
 
 export function createMcpServer(): McpServer {
   const server = new McpServer({
@@ -29,6 +31,8 @@ function registerTools(server: McpServer): void {
   registerGetFlow(server);
   registerListEntryPoints(server);
   registerFindOrphans(server);
+  registerFindCycles(server);
+  registerFindDuplicates(server);
 }
 
 export async function startServer(): Promise<void> {
