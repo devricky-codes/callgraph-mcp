@@ -8,6 +8,8 @@ Powered by [`@codeflow-map/core`](https://www.npmjs.com/package/@codeflow-map/co
 
 **Supports:** TypeScript · JavaScript · TSX · JSX · Python · Go
 
+![Cyclic call graph demo](https://raw.githubusercontent.com/devricky-codes/callgraph-mcp/refs/heads/main/assets/cyclic.gif)
+
 > **Bundled grammars:** TypeScript, JavaScript, TSX, JSX, Python, and Go grammars are included. After install, they are available in `callgraph-mcp/grammars`.
 
 ---
@@ -23,6 +25,8 @@ Most AI coding tools answer structural questions about your codebase by reading 
 **callgraph-mcp eliminates all three.** It never reads your code as prose. It parses every file into an AST using Tree-sitter, builds an exact directed call graph, and answers structural queries against that graph. Every caller, every callee, every reachable function, every cycle - returned as a precise index. The answer is always the same regardless of how large your codebase is, which files happen to be in context, or how deeply buried a function is. **There is no probability involved. There is no attention to dilute.**
 
 ---
+
+
 
 
 ## Setup
