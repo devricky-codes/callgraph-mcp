@@ -1,6 +1,6 @@
 # callgraph-mcp
 
-**CallGraph MCP Server** — exposes deterministic call-graph analysis for any codebase as [Model Context Protocol](https://modelcontextprotocol.io/) tools. Give your AI agent a precise, structural map of your code — no hallucination, no guessing.
+**CallGraph MCP Server** — exposes deterministic call-graph analysis for any codebase as MCP tool. Give your AI agent a precise, structural map of your code — no hallucination, no guessing.
 
 Fully local. No cloud. No LLM. No telemetry.
 
