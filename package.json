@@ -1,0 +1,57 @@
+{
+  "name": "callgraph-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for codebase call-flow analysis. Local, deterministic, language-agnostic. Powered by @codeflow-map/core.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "call-graph",
+    "static-analysis",
+    "code-analysis",
+    "flowmap"
+  ],
+  "license": "MIT",
+  "author": "devricky-codes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devricky-codes/callsight-vscode.git",
+    "directory": "packages/mcp-server"
+  },
+  "homepage": "https://github.com/devricky-codes/callsight-vscode#readme",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "callgraph-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist/",
+    "grammars/",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:bundle": "esbuild src/index.ts --bundle --platform=node --format=cjs --target=node18 --minify --outfile=dist/index.js --banner:js=\"#!/usr/bin/env node\" --external:@codeflow-map/core --external:@modelcontextprotocol/sdk --external:fast-glob --external:zod",
+    "build": "pnpm run clean && pnpm run build:types && pnpm run build:bundle && node scripts/copy-grammars.cjs",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@codeflow-map/core": "^0.2.5",
+    "@modelcontextprotocol/sdk": "^1.27.0",
+    "fast-glob": "^3.3.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "esbuild": "^0.27.4",
+    "typescript": "^5.3.3",
+    "tsx": "^4.0.0"
+  }
+}
