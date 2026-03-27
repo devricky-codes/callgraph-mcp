@@ -24,10 +24,10 @@ Most AI coding tools answer structural questions about your codebase by reading 
 
 **callgraph-mcp eliminates all three.** It never reads your code as prose. It parses every file into an AST using Tree-sitter, builds an exact directed call graph, and answers structural queries against that graph. Every caller, every callee, every reachable function, every cycle - returned as a precise index. The answer is always the same regardless of how large your codebase is, which files happen to be in context, or how deeply buried a function is. **There is no probability involved. There is no attention to dilute.**
 
+![MCP Demo](https://raw.githubusercontent.com/devricky-codes/callsight-vscode/refs/heads/main/media/mcp-demo.png)
+*The image shows how callgraph explains the POST method flow in python-fastAPI codebase. Irrespective of how large or small the codebase gets, it won't miss an edge.*
+
 ---
-
-
-
 
 ## Setup
 
@@ -83,21 +83,17 @@ Then point your client at it:
 
 Optional parameters shown in `[brackets]`.
 
-<table>
-<colgroup><col width="22%"><col width="38%"><col width="40%"></colgroup>
-<thead><tr><th>Tool</th><th>Parameters</th><th>Returns</th></tr></thead>
-<tbody>
-<tr><td><code>flowmap_analyze_workspace</code></td><td><code>workspacePath</code>, [<code>exclude</code>], [<code>language</code>]</td><td>Full call graph: nodes, edges, flows, orphans</td></tr>
-<tr><td><code>flowmap_analyze_file</code></td><td><code>filePath</code></td><td>Functions and call sites in one file</td></tr>
-<tr><td><code>flowmap_get_callers</code></td><td><code>functionName</code>, <code>workspacePath</code></td><td>Direct callers of the function</td></tr>
-<tr><td><code>flowmap_get_callees</code></td><td><code>functionName</code>, <code>workspacePath</code></td><td>Functions the named function calls</td></tr>
-<tr><td><code>flowmap_get_flow</code></td><td><code>functionName</code>, <code>workspacePath</code>, [<code>maxDepth</code>=10]</td><td>Full BFS subgraph reachable from a function</td></tr>
-<tr><td><code>flowmap_list_entry_points</code></td><td><code>workspacePath</code></td><td>Mains, route handlers, CLI commands, React roots</td></tr>
-<tr><td><code>flowmap_find_orphans</code></td><td><code>workspacePath</code></td><td>Functions unreachable from any entry point</td></tr>
-<tr><td><code>flowmap_find_cycles</code></td><td><code>workspacePath</code>, [<code>minCycleLength</code>], [<code>exclude</code>]</td><td>All circular call chains with exact edges</td></tr>
-<tr><td><code>flowmap_find_duplicates</code> <em>(experimental)</em></td><td><code>workspacePath</code>, [<code>similarityThreshold</code>=0.75], [<code>minCallees</code>=2], [<code>exclude</code>]</td><td>Function clusters with similar callee sets</td></tr>
-</tbody>
-</table>
+| Tool | Parameters | Returns |
+|------|------------|---------|
+| `flowmap_analyze_workspace` | `workspacePath`, [`exclude`], [`language`] | Full call graph: nodes, edges, flows, orphans |
+| `flowmap_analyze_file` | `filePath` | Functions and call sites in one file |
+| `flowmap_get_callers` | `functionName`, `workspacePath` | Direct callers of the function |
+| `flowmap_get_callees` | `functionName`, `workspacePath` | Functions the named function calls |
+| `flowmap_get_flow` | `functionName`, `workspacePath`, [`maxDepth`=10] | Full BFS subgraph reachable from a function |
+| `flowmap_list_entry_points` | `workspacePath` | Mains, route handlers, CLI commands, React roots |
+| `flowmap_find_orphans` | `workspacePath` | Functions unreachable from any entry point |
+| `flowmap_find_cycles` | `workspacePath`, [`minCycleLength`], [`exclude`] | All circular call chains with exact edges |
+| `flowmap_find_duplicates` *(experimental)* | `workspacePath`, [`similarityThreshold`=0.75], [`minCallees`=2], [`exclude`] | Function clusters with similar callee sets |
 
 **`workspacePath`** — absolute path to the repo root (e.g. `/home/user/my-project` or `C:\projects\my-app`).
 
@@ -105,23 +101,17 @@ Optional parameters shown in `[brackets]`.
 
 ## Environment Variable Reference
 
-<table>
-<colgroup><col width="22%"><col width="15%"><col width="63%"></colgroup>
-<thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
-<tbody>
-<tr><td><code>FLOWMAP_TRANSPORT</code></td><td><code>stdio</code></td><td><code>stdio</code> or <code>http</code></td></tr>
-<tr><td><code>FLOWMAP_PORT</code></td><td><code>3100</code></td><td>HTTP port (http transport only)</td></tr>
-<tr><td><code>FLOWMAP_GRAMMARS</code></td><td><em>(bundled)</em></td><td>Override path to WASM grammar files</td></tr>
-<tr><td><code>FLOWMAP_DUP_THRESHOLD</code></td><td><code>0.75</code></td><td>Jaccard similarity threshold for <code>find_duplicates</code> (0–1)</td></tr>
-<tr><td><code>FLOWMAP_DUP_MIN_CALLEES</code></td><td><code>2</code></td><td>Min callee count for <code>find_duplicates</code></td></tr>
-</tbody>
-</table>
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FLOWMAP_TRANSPORT` | `stdio` | `stdio` or `http` |
+| `FLOWMAP_PORT` | `3100` | HTTP port (http transport only) |
+| `FLOWMAP_GRAMMARS` | *(bundled)* | Override path to WASM grammar files |
+| `FLOWMAP_DUP_THRESHOLD` | `0.75` | Jaccard similarity threshold for `find_duplicates` (0–1) |
+| `FLOWMAP_DUP_MIN_CALLEES` | `2` | Min callee count for `find_duplicates` |
 
 ---
 
 ## Example Use Cases
-
----
 
 ### PR review and change safety
 
