@@ -224,10 +224,10 @@ Files are parsed in parallel batches of 50. Results are cached for 30 seconds â€
 
 ## Links
 
-- [VS Code Extension (CallSight)](https://marketplace.visualstudio.com/items?itemName=devricky-codes.callsight)
+- [VS Code Extension](https://github.com/devricky-codes/callsight-vscode)
 - [Core Package (@codeflow-map/core)](https://www.npmjs.com/package/@codeflow-map/core)
 - [Source Code](https://github.com/devricky-codes/callgraph-mcp)
-- [Report Issues](https://github.com/devricky-codes/callgraph-mcp)
+- [Report Issues](https://github.com/devricky-codes/callgraph-mcp/issues)
 
 ## License
 
