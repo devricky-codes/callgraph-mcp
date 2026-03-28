@@ -31,7 +31,7 @@ Most AI coding tools answer structural questions about your codebase by reading 
 
 ## Setup
 
-### Option 1 — VS Code via `npx` (no install required)
+### Option 1 — VS Code via `npx`
 
 Add to your project's `.vscode/mcp.json`:
 
@@ -50,11 +50,30 @@ Add to your project's `.vscode/mcp.json`:
 }
 ```
 
+### Option 2 
+
+```json
+{
+  "servers": {
+    "flowmap": {
+      "type": "stdio",
+      "command": "callgraph-mcp",
+      "args": [],
+      "env": {
+        "FLOWMAP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}
+```
+
+
+
 Start the server in your editor. WASM grammars are bundled — no environment variables needed.
 
 > **Tip:** Create `.vscode/mcp.json` via the Command Palette -> **MCP: Add Server** -> **stdio**.
 
-### Option 2 — HTTP-SSE (shared or remote server)
+### Option 3 — HTTP-SSE (shared or remote server)
 
 Use `FLOWMAP_TRANSPORT=http` for HTTP-SSE compatible clients.
 
