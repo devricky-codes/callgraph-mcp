@@ -10,6 +10,8 @@ Powered by [`@codeflow-map/core`](https://www.npmjs.com/package/@codeflow-map/co
 
 ![Cyclic call graph demo](https://raw.githubusercontent.com/devricky-codes/callgraph-mcp/refs/heads/main/assets/cyclic.gif)
 
+*Designed for zero false negatives (within static limits). It never misses anything it can see (high recall), even if that means over-reporting.*
+
 > **Bundled grammars:** TypeScript, JavaScript, TSX, JSX, Python, and Go grammars are included. After install, they are available in `callgraph-mcp/grammars`.
 
 ---
