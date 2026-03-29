@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { FunctionNode } from '@codeflow-map/core';
 import { analyzeWorkspace } from '../utils/analysis';
 import { registerTool } from '../utils/toolHelper';
+import { ProgressTracker } from '../utils/progress';
 
 // ---------------------------------------------------------------------------
 // Jaccard similarity between two sets of strings
@@ -76,9 +77,11 @@ export function registerFindDuplicates(server: McpServer): void {
       ),
     },
     async ({ workspacePath, similarityThreshold, minCallees, exclude }) => {
+      const progress = new ProgressTracker('flowmap_find_duplicates');
       const resolvedThreshold = similarityThreshold ?? envThreshold();
       const resolvedMinCallees = minCallees ?? envMinCallees();
       try {
+        progress.reportProgress('Validating workspace path');
         if (!fs.existsSync(workspacePath)) {
           return {
             content: [{
@@ -98,7 +101,9 @@ export function registerFindDuplicates(server: McpServer): void {
           ? exclude.split(',').map(s => s.trim()).filter(Boolean)
           : DEFAULT_EXCLUDES;
 
+        progress.reportProgress('Building call graph');
         const graph = await analyzeWorkspace(workspacePath, { exclude: excludeList });
+        progress.reportProgress('Computing callee signatures');
 
         const similarityThreshold = resolvedThreshold;
         const minCallees = resolvedMinCallees;
@@ -126,6 +131,7 @@ export function registerFindDuplicates(server: McpServer): void {
           n => (calleeNames.get(n.id)?.size ?? 0) >= minCallees,
         );
 
+        progress.reportProgress('Comparing function signatures');
         // O(n²) pair comparison — guarded by minCallees filter
         const uf = new UnionFind();
         for (const node of candidates) uf.init(node.id);
@@ -226,6 +232,7 @@ export function registerFindDuplicates(server: McpServer): void {
 
         // Sort by cluster size descending (largest duplication opportunity first)
         duplicateClusters.sort((a, b) => b.size - a.size || b.sharedCallees.length - a.sharedCallees.length);
+        progress.reportProgress('Analysis complete');
 
         return {
           content: [{
@@ -237,6 +244,10 @@ export function registerFindDuplicates(server: McpServer): void {
               parameters: { similarityThreshold, minCallees, envOverrides: { FLOWMAP_DUP_THRESHOLD: process.env.FLOWMAP_DUP_THRESHOLD ?? null, FLOWMAP_DUP_MIN_CALLEES: process.env.FLOWMAP_DUP_MIN_CALLEES ?? null } },
               durationMs: graph.durationMs,
               scannedFiles: graph.scannedFiles,
+              progress: {
+                steps: progress.getProgress(),
+                summary: progress.getSummary(),
+              },
               note: duplicateClusters.length === 0
                 ? 'No functionally duplicate functions detected at the current threshold. Try lowering similarityThreshold or minCallees.'
                 : `${duplicateClusters.length} duplicate cluster(s) found. Each cluster is a group of functions that call the same logical dependencies and are candidates for generalisation.`,

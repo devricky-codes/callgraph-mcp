@@ -7,7 +7,23 @@ interface CacheEntry {
 }
 
 const cache = new Map<string, CacheEntry>();
-const TTL_MS = 30_000; // 30 seconds
+
+/**
+ * Get cache TTL in milliseconds from environment variable.
+ * FLOWMAP_CACHE_TTL_MS: milliseconds (default: 30000 = 30 seconds)
+ */
+function getCacheTTL(): number {
+  const envValue = process.env.FLOWMAP_CACHE_TTL_MS;
+  if (!envValue) return 30_000;
+  const parsed = parseInt(envValue, 10);
+  if (!isFinite(parsed) || parsed < 0) {
+    process.stderr.write(`[flowmap] Invalid FLOWMAP_CACHE_TTL_MS: "${envValue}" (must be non-negative integer). Using default 30000ms.\n`);
+    return 30_000;
+  }
+  return parsed;
+}
+
+const TTL_MS = getCacheTTL();
 
 export function getCached(workspacePath: string): Graph | null {
   const entry = cache.get(workspacePath);

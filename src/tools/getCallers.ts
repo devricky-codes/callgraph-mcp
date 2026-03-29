@@ -3,6 +3,7 @@ import { z } from 'zod';
 import * as fs from 'fs';
 import { analyzeWorkspace } from '../utils/analysis';
 import { registerTool } from '../utils/toolHelper';
+import { ProgressTracker } from '../utils/progress';
 
 export function registerGetCallers(server: McpServer): void {
   registerTool(
@@ -14,7 +15,9 @@ export function registerGetCallers(server: McpServer): void {
       workspacePath: z.string().describe('Absolute path to the repository root'),
     },
     async ({ functionName, workspacePath }) => {
+      const progress = new ProgressTracker('flowmap_get_callers');
       try {
+        progress.reportProgress('Validating workspace path');
         if (!fs.existsSync(workspacePath)) {
           return {
             content: [{
@@ -29,7 +32,9 @@ export function registerGetCallers(server: McpServer): void {
           };
         }
 
+        progress.reportProgress('Building call graph');
         const graph = await analyzeWorkspace(workspacePath);
+        progress.reportProgress('Searching for target function');
 
         // Find target function(s) by name
         const targets = graph.nodes.filter(n => n.name === functionName);
@@ -50,6 +55,7 @@ export function registerGetCallers(server: McpServer): void {
         const target = targets[0];
         const targetIds = new Set(targets.map(t => t.id));
 
+        progress.reportProgress('Filtering callers');
         // Find edges where to is one of the target IDs
         const callerEdges = graph.edges.filter(e => targetIds.has(e.to));
         const callers = callerEdges.map(edge => {
@@ -63,6 +69,7 @@ export function registerGetCallers(server: McpServer): void {
           };
         });
 
+        progress.reportProgress('Analysis complete');
         return {
           content: [{
             type: 'text' as const,
@@ -71,6 +78,10 @@ export function registerGetCallers(server: McpServer): void {
               targetId: target.id,
               callers,
               count: callers.length,
+              progress: {
+                steps: progress.getProgress(),
+                summary: progress.getSummary(),
+              },
             }),
           }],
         };

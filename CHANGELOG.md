@@ -4,6 +4,25 @@ All notable changes to `callgraph-mcp` are documented here.
 
 ---
 
+## [1.8.0] — 2026-03-29
+
+### Added
+- **Real-time progress tracking** — All tools now report progress stages and timing. Include `progress` field in response with step-by-step breakdown and summary.
+- **`FLOWMAP_BATCH_SIZE`** env var — Control parallel file parsing batch size (default `50`, must be ≥ 1). Tune for memory vs. throughput trade-offs.
+- **`FLOWMAP_CACHE_TTL_MS`** env var — Control result cache time-to-live in milliseconds (default `30000` = 30 seconds, set to `0` to disable).
+
+### Changed
+- All tools now validate environment variables at startup and warn on stderr if invalid values are provided.
+
+---
+
+## [1.6.3] — 2026-03-28
+
+### Changed
+- README updates only. (1.4.0 – 1.7.0)
+
+---
+
 ## [1.4.0] — 2026-03-27
 
 ### Added

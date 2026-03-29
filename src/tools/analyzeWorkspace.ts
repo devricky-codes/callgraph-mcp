@@ -3,6 +3,7 @@ import { z } from 'zod';
 import * as fs from 'fs';
 import { analyzeWorkspace } from '../utils/analysis';
 import { registerTool } from '../utils/toolHelper';
+import { ProgressTracker } from '../utils/progress';
 import { SupportedLanguage } from '@codeflow-map/core';
 
 const SUPPORTED_LANGUAGES = ['typescript', 'javascript', 'python', 'java', 'go', 'rust', 'tsx', 'jsx'];
@@ -19,7 +20,9 @@ export function registerAnalyzeWorkspace(server: McpServer): void {
       language: z.string().optional().describe('Filter to a single language: typescript, javascript, python, java, go, rust, tsx, jsx. Omit to scan all.'),
     },
     async ({ workspacePath, exclude, language }) => {
+      const progress = new ProgressTracker('flowmap_analyze_workspace');
       try {
+        progress.reportProgress('Validating workspace path');
         if (!fs.existsSync(workspacePath)) {
           return {
             content: [{
@@ -42,15 +45,23 @@ export function registerAnalyzeWorkspace(server: McpServer): void {
           ? language as SupportedLanguage
           : undefined;
 
+        progress.reportProgress('Starting codebase analysis');
         const graph = await analyzeWorkspace(workspacePath, {
           exclude: excludeList,
           language: lang,
         });
+        progress.reportProgress('Analysis complete');
 
         return {
           content: [{
             type: 'text' as const,
-            text: JSON.stringify(graph),
+            text: JSON.stringify({
+              ...graph,
+              progress: {
+                steps: progress.getProgress(),
+                summary: progress.getSummary(),
+              },
+            }),
           }],
         };
       } catch (err: unknown) {

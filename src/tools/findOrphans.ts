@@ -3,6 +3,7 @@ import { z } from 'zod';
 import * as fs from 'fs';
 import { analyzeWorkspace } from '../utils/analysis';
 import { registerTool } from '../utils/toolHelper';
+import { ProgressTracker } from '../utils/progress';
 
 export function registerFindOrphans(server: McpServer): void {
   registerTool(
@@ -13,7 +14,9 @@ export function registerFindOrphans(server: McpServer): void {
       workspacePath: z.string().describe('Absolute path to the repository root'),
     },
     async ({ workspacePath }) => {
+      const progress = new ProgressTracker('flowmap_find_orphans');
       try {
+        progress.reportProgress('Validating workspace path');
         if (!fs.existsSync(workspacePath)) {
           return {
             content: [{
@@ -28,7 +31,9 @@ export function registerFindOrphans(server: McpServer): void {
           };
         }
 
+        progress.reportProgress('Building call graph');
         const graph = await analyzeWorkspace(workspacePath);
+        progress.reportProgress('Identifying orphan functions');
 
         const orphans = graph.orphans.map(orphanId => {
           const node = graph.nodes.find(n => n.id === orphanId);
@@ -44,6 +49,7 @@ export function registerFindOrphans(server: McpServer): void {
             : { id: orphanId, name: 'unknown', filePath: 'unknown', startLine: 0 };
         });
 
+        progress.reportProgress('Analysis complete');
         return {
           content: [{
             type: 'text' as const,
@@ -52,6 +58,10 @@ export function registerFindOrphans(server: McpServer): void {
               count: orphans.length,
               durationMs: graph.durationMs,
               note: 'Exported functions may be used by external consumers — verify before deleting.',
+              progress: {
+                steps: progress.getProgress(),
+                summary: progress.getSummary(),
+              },
             }),
           }],
         };

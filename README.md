@@ -127,6 +127,8 @@ Optional parameters shown in `[brackets]`.
 | `FLOWMAP_TRANSPORT` | `stdio` | `stdio` or `http` |
 | `FLOWMAP_PORT` | `3100` | HTTP port (http transport only) |
 | `FLOWMAP_GRAMMARS` | *(bundled)* | Override path to WASM grammar files |
+| `FLOWMAP_BATCH_SIZE` | `50` | Files per parallel parsing batch (must be ≥ 1) |
+| `FLOWMAP_CACHE_TTL_MS` | `30000` | Result cache time-to-live in milliseconds (0 to disable) |
 | `FLOWMAP_DUP_THRESHOLD` | `0.75` | Jaccard similarity threshold for `find_duplicates` (0–1) |
 | `FLOWMAP_DUP_MIN_CALLEES` | `2` | Min callee count for `find_duplicates` |
 
@@ -220,6 +222,10 @@ The agent calls `flowmap_find_duplicates(workspacePath)`. Each cluster in the re
 The agent calls `flowmap_find_cycles(workspacePath)`. Every cycle is returned with the exact functions involved.
 
 ---
+
+![Duplicates](https://raw.githubusercontent.com/devricky-codes/callgraph-mcp/refs/heads/main/assets/duplicates.gif)
+
+*Duplicates flags different functions that could be a single re-usable function*
 
 ## How It Works
 

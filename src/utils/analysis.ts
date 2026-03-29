@@ -14,7 +14,22 @@ import {
 import { getCached, setCached } from './cache';
 import { discoverFiles, DiscoveryOptions } from './fileDiscovery';
 
-const BATCH_SIZE = 50;
+/**
+ * Get file parsing batch size from environment variable.
+ * FLOWMAP_BATCH_SIZE: number of files per batch (default: 50)
+ */
+function getParseBatchSize(): number {
+  const envValue = process.env.FLOWMAP_BATCH_SIZE;
+  if (!envValue) return 50;
+  const parsed = parseInt(envValue, 10);
+  if (!isFinite(parsed) || parsed < 1) {
+    process.stderr.write(`[flowmap] Invalid FLOWMAP_BATCH_SIZE: "${envValue}" (must be positive integer). Using default 50.\n`);
+    return 50;
+  }
+  return parsed;
+}
+
+const BATCH_SIZE = getParseBatchSize();
 let treeSitterInitialized = false;
 
 export function resolveWasmDir(): string {

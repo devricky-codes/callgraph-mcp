@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { CallEdge, FunctionNode } from '@codeflow-map/core';
 import { analyzeWorkspace } from '../utils/analysis';
 import { registerTool } from '../utils/toolHelper';
+import { ProgressTracker } from '../utils/progress';
 
 /** Tarjan's SCC — returns groups of node IDs that form cycles. */
 function findStronglyConnectedComponents(
@@ -79,7 +80,9 @@ export function registerFindCycles(server: McpServer): void {
       exclude: z.string().optional().describe('Comma-separated glob patterns to exclude. Defaults: node_modules,dist,.git,__pycache__,*.test.*,*.spec.*'),
     },
     async ({ workspacePath, minCycleLength = 1, exclude }) => {
+      const progress = new ProgressTracker('flowmap_find_cycles');
       try {
+        progress.reportProgress('Validating workspace path');
         if (!fs.existsSync(workspacePath)) {
           return {
             content: [{
@@ -99,8 +102,10 @@ export function registerFindCycles(server: McpServer): void {
           ? exclude.split(',').map(s => s.trim()).filter(Boolean)
           : DEFAULT_EXCLUDES;
 
+        progress.reportProgress('Building call graph');
         const graph = await analyzeWorkspace(workspacePath, { exclude: excludeList });
 
+        progress.reportProgress('Detecting cycle patterns');
         const nodeIds = graph.nodes.map(n => n.id);
         const sccs = findStronglyConnectedComponents(nodeIds, graph.edges);
 
@@ -117,6 +122,7 @@ export function registerFindCycles(server: McpServer): void {
 
         const nodeById = new Map<string, FunctionNode>(graph.nodes.map(n => [n.id, n]));
 
+        progress.reportProgress('Building cycle details');
         const cycles = cyclesRaw.map((scc, i) => {
           const members = scc.map(id => {
             const n = nodeById.get(id);
@@ -135,6 +141,7 @@ export function registerFindCycles(server: McpServer): void {
           };
         });
 
+        progress.reportProgress('Analysis complete');
         return {
           content: [{
             type: 'text' as const,
@@ -143,6 +150,10 @@ export function registerFindCycles(server: McpServer): void {
               totalCycles: cycles.length,
               durationMs: graph.durationMs,
               scannedFiles: graph.scannedFiles,
+              progress: {
+                steps: progress.getProgress(),
+                summary: progress.getSummary(),
+              },
               note: cycles.length === 0
                 ? 'No cycles detected — the call graph is acyclic.'
                 : `${cycles.length} cycle(s) found. Cycles involving many functions or cross-module calls are the highest priority to review.`,

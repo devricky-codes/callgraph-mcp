@@ -3,6 +3,7 @@ import { z } from 'zod';
 import * as fs from 'fs';
 import { analyzeWorkspace } from '../utils/analysis';
 import { registerTool } from '../utils/toolHelper';
+import { ProgressTracker } from '../utils/progress';
 
 export function registerListEntryPoints(server: McpServer): void {
   registerTool(
@@ -13,7 +14,9 @@ export function registerListEntryPoints(server: McpServer): void {
       workspacePath: z.string().describe('Absolute path to the repository root'),
     },
     async ({ workspacePath }) => {
+      const progress = new ProgressTracker('flowmap_list_entry_points');
       try {
+        progress.reportProgress('Validating workspace path');
         if (!fs.existsSync(workspacePath)) {
           return {
             content: [{
@@ -28,7 +31,9 @@ export function registerListEntryPoints(server: McpServer): void {
           };
         }
 
+        progress.reportProgress('Building call graph');
         const graph = await analyzeWorkspace(workspacePath);
+        progress.reportProgress('Filtering entry points');
         const entryNodes = graph.nodes.filter(n => n.isEntryPoint);
 
         const entryPoints = entryNodes.map(n => ({
@@ -41,6 +46,7 @@ export function registerListEntryPoints(server: McpServer): void {
           isAsync: n.isAsync,
         }));
 
+        progress.reportProgress('Analysis complete');
         return {
           content: [{
             type: 'text' as const,
@@ -48,6 +54,10 @@ export function registerListEntryPoints(server: McpServer): void {
               entryPoints,
               count: entryPoints.length,
               durationMs: graph.durationMs,
+              progress: {
+                steps: progress.getProgress(),
+                summary: progress.getSummary(),
+              },
             }),
           }],
         };

@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { FunctionNode, CallEdge } from '@codeflow-map/core';
 import { analyzeWorkspace } from '../utils/analysis';
 import { registerTool } from '../utils/toolHelper';
+import { ProgressTracker } from '../utils/progress';
 
 export function registerGetFlow(server: McpServer): void {
   registerTool(
@@ -16,8 +17,10 @@ export function registerGetFlow(server: McpServer): void {
       maxDepth: z.number().optional().describe('Maximum recursion depth. Default 10.'),
     },
     async ({ functionName, workspacePath, maxDepth: rawMaxDepth }) => {
+      const progress = new ProgressTracker('flowmap_get_flow');
       const maxDepth = rawMaxDepth ?? 10;
       try {
+        progress.reportProgress('Validating workspace path');
         if (!fs.existsSync(workspacePath)) {
           return {
             content: [{
@@ -32,7 +35,9 @@ export function registerGetFlow(server: McpServer): void {
           };
         }
 
+        progress.reportProgress('Building call graph');
         const graph = await analyzeWorkspace(workspacePath);
+        progress.reportProgress('Locating start function');
 
         const targets = graph.nodes.filter(n => n.name === functionName);
         if (targets.length === 0) {
@@ -51,6 +56,7 @@ export function registerGetFlow(server: McpServer): void {
 
         const target = targets[0];
 
+        progress.reportProgress('Tracing call flow');
         // Build adjacency map for BFS
         const outgoing = new Map<string, { edge: CallEdge; node: FunctionNode }[]>();
         for (const edge of graph.edges) {
@@ -89,6 +95,7 @@ export function registerGetFlow(server: McpServer): void {
           currentDepth++;
         }
 
+        progress.reportProgress('Analysis complete');
         return {
           content: [{
             type: 'text' as const,
@@ -98,6 +105,10 @@ export function registerGetFlow(server: McpServer): void {
               edges: reachableEdges,
               depth: currentDepth,
               totalFunctions: reachableNodes.length,
+              progress: {
+                steps: progress.getProgress(),
+                summary: progress.getSummary(),
+              },
             }),
           }],
         };
