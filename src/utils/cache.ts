@@ -1,4 +1,5 @@
 import { Graph } from '@codeflow-map/core';
+import { logWarning } from './logger';
 
 interface CacheEntry {
   graph: Graph;
@@ -17,7 +18,7 @@ function getCacheTTL(): number {
   if (!envValue) return 30_000;
   const parsed = parseInt(envValue, 10);
   if (!isFinite(parsed) || parsed < 0) {
-    process.stderr.write(`[flowmap] Invalid FLOWMAP_CACHE_TTL_MS: "${envValue}" (must be non-negative integer). Using default 30000ms.\n`);
+    logWarning(`[flowmap] Invalid FLOWMAP_CACHE_TTL_MS: "${envValue}" (must be non-negative integer). Using default 30000ms.`);
     return 30_000;
   }
   return parsed;

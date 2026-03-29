@@ -1,6 +1,7 @@
 import { startServer } from './server';
+import { logError } from './utils/logger';
 
 startServer().catch((err) => {
-  process.stderr.write(`FlowMap MCP server failed to start: ${err}\n`);
+  logError(`FlowMap MCP server failed to start: ${err}`);
   process.exit(1);
 });

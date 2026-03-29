@@ -12,6 +12,7 @@ import { registerListEntryPoints } from './tools/listEntryPoints';
 import { registerFindOrphans } from './tools/findOrphans';
 import { registerFindCycles } from './tools/findCycles';
 import { registerFindDuplicates } from './tools/findDuplicates';
+import { logVerbose } from './utils/logger';
 
 export function createMcpServer(): McpServer {
   const server = new McpServer({
@@ -71,6 +72,6 @@ async function startHttpServer(): Promise<void> {
   await server.connect(transport);
 
   httpServer.listen(port, () => {
-    process.stderr.write(`FlowMap MCP server listening on http://localhost:${port}/mcp\n`);
+    logVerbose(`FlowMap MCP server listening on http://localhost:${port}/mcp`);
   });
 }

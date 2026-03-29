@@ -129,8 +129,19 @@ Optional parameters shown in `[brackets]`.
 | `FLOWMAP_GRAMMARS` | *(bundled)* | Override path to WASM grammar files |
 | `FLOWMAP_BATCH_SIZE` | `50` | Files per parallel parsing batch (must be ≥ 1) |
 | `FLOWMAP_CACHE_TTL_MS` | `30000` | Result cache time-to-live in milliseconds (0 to disable) |
+| `FLOWMAP_VERBOSE` | `true` | Enable/disable diagnostic log lines on stderr (`Log: ...`) |
 | `FLOWMAP_DUP_THRESHOLD` | `0.75` | Jaccard similarity threshold for `find_duplicates` (0–1) |
 | `FLOWMAP_DUP_MIN_CALLEES` | `2` | Min callee count for `find_duplicates` |
+
+### stderr output format
+
+FlowMap writes structured runtime messages to `stderr` with a severity prefix:
+
+- `Log: ...` for verbose progress and diagnostic output
+- `Warning: ...` for recoverable configuration/runtime issues
+- `Error: ...` for startup failures and other fatal errors
+
+Set `FLOWMAP_VERBOSE=false` to suppress `Log:` lines while keeping `Warning:` and `Error:` output.
 
 ---
 

@@ -4,6 +4,13 @@ All notable changes to `callgraph-mcp` are documented here.
 
 ---
 
+## [1.8.1] — 2026-03-29
+
+### Added
+- **`FLOWMAP_VERBOSE`** env var — Toggle diagnostic logging to `stderr`. Defaults to `true`. Set to `false` to suppress progress and initialization logs.
+
+---
+
 ## [1.8.0] — 2026-03-29
 
 ### Added

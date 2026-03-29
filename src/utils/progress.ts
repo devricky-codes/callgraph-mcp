@@ -1,6 +1,8 @@
 /**
  * Progress tracker for tools to report operation stages and timing
  */
+import { logVerbose } from './logger';
+
 export interface ProgressStep {
   step: number;
   stage: string;
@@ -13,9 +15,12 @@ export class ProgressTracker {
   private startTime: number = Date.now();
   private stageStartTime: number = Date.now();
   private currentStep: number = 0;
+  private verbose: boolean = process.env.FLOWMAP_VERBOSE !== 'false';
 
   constructor(private toolName: string) {
-    this.logToStderr(`[${toolName}] Starting analysis...`);
+    if (this.verbose) {
+      logVerbose(`[${toolName}] Starting analysis...`);
+    }
   }
 
   reportProgress(stage: string): void {
@@ -30,7 +35,9 @@ export class ProgressTracker {
       durationMs: duration,
     });
 
-    this.logToStderr(`[${this.toolName}] Step ${this.currentStep}: ${stage} (${duration}ms)`);
+    if (this.verbose) {
+      logVerbose(`[${this.toolName}] Step ${this.currentStep}: ${stage} (${duration}ms)`);
+    }
     this.stageStartTime = now;
   }
 
@@ -45,9 +52,5 @@ export class ProgressTracker {
   getSummary(): string {
     const total = this.getTotalDurationMs();
     return `${this.steps.length} steps in ${total}ms`;
-  }
-
-  private logToStderr(message: string): void {
-    process.stderr.write(message + '\n');
   }
 }

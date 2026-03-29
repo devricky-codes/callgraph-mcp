@@ -13,6 +13,7 @@ import {
 } from '@codeflow-map/core';
 import { getCached, setCached } from './cache';
 import { discoverFiles, DiscoveryOptions } from './fileDiscovery';
+import { logVerbose, logWarning } from './logger';
 
 /**
  * Get file parsing batch size from environment variable.
@@ -23,7 +24,7 @@ function getParseBatchSize(): number {
   if (!envValue) return 50;
   const parsed = parseInt(envValue, 10);
   if (!isFinite(parsed) || parsed < 1) {
-    process.stderr.write(`[flowmap] Invalid FLOWMAP_BATCH_SIZE: "${envValue}" (must be positive integer). Using default 50.\n`);
+    logWarning(`[flowmap] Invalid FLOWMAP_BATCH_SIZE: "${envValue}" (must be positive integer). Using default 50.`);
     return 50;
   }
   return parsed;
@@ -58,11 +59,11 @@ export function resolveWasmDir(): string {
 async function ensureTreeSitter(): Promise<void> {
   if (!treeSitterInitialized) {
     const wasmDir = resolveWasmDir();
-    const wasmPath = path.join(wasmDir, 'tree-sitter.wasm');
-    const wasmExists = fs.existsSync(wasmPath);
-    console.error(
-      `[flowmap] Grammar directory: ${wasmDir} (tree-sitter.wasm ${wasmExists ? 'found' : 'missing'})`,
-    );
+    if (process.env.FLOWMAP_VERBOSE !== 'false') {
+      const wasmPath = path.join(wasmDir, 'tree-sitter.wasm');
+      const wasmExists = fs.existsSync(wasmPath);
+      logVerbose(`[flowmap] Grammar directory: ${wasmDir} (tree-sitter.wasm ${wasmExists ? 'found' : 'missing'})`);
+    }
     await initTreeSitter(wasmDir);
     treeSitterInitialized = true;
   }
