@@ -118,6 +118,20 @@ Optional parameters shown in `[brackets]`.
 
 **`workspacePath`** — absolute path to the repo root (e.g. `/home/user/my-project` or `C:\projects\my-app`).
 
+### Token-Saving Use Cases
+
+| Tool | Token-saving use case |
+|------|------------------------|
+| `flowmap_analyze_workspace` | One call replaces reading every file for an architecture overview |
+| `flowmap_analyze_file` | Structural map of a single file without loading its full content |
+| `flowmap_get_callers` | Impact analysis without reading the whole codebase |
+| `flowmap_get_callees` | Dependency lookup without loading source |
+| `flowmap_get_flow` | End-to-end trace of a feature path without reading each file |
+| `flowmap_list_entry_points` | Instant onboarding map; no file-by-file scanning needed |
+| `flowmap_find_orphans` | Dead code report without reading any file |
+| `flowmap_find_cycles` | Circular dependency identification without reading all text |
+| `flowmap_find_duplicates` | Detects silently duplicated logic without comparing file contents |
+
 ---
 
 ## Environment Variable Reference
@@ -129,19 +143,8 @@ Optional parameters shown in `[brackets]`.
 | `FLOWMAP_GRAMMARS` | *(bundled)* | Override path to WASM grammar files |
 | `FLOWMAP_BATCH_SIZE` | `50` | Files per parallel parsing batch (must be ≥ 1) |
 | `FLOWMAP_CACHE_TTL_MS` | `30000` | Result cache time-to-live in milliseconds (0 to disable) |
-| `FLOWMAP_VERBOSE` | `true` | Enable/disable diagnostic log lines on stderr (`Log: ...`) |
 | `FLOWMAP_DUP_THRESHOLD` | `0.75` | Jaccard similarity threshold for `find_duplicates` (0–1) |
 | `FLOWMAP_DUP_MIN_CALLEES` | `2` | Min callee count for `find_duplicates` |
-
-### stderr output format
-
-FlowMap writes structured runtime messages to `stderr` with a severity prefix:
-
-- `Log: ...` for verbose progress and diagnostic output
-- `Warning: ...` for recoverable configuration/runtime issues
-- `Error: ...` for startup failures and other fatal errors
-
-Set `FLOWMAP_VERBOSE=false` to suppress `Log:` lines while keeping `Warning:` and `Error:` output.
 
 ---
 

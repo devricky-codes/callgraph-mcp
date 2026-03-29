@@ -1,6 +1,6 @@
 {
   "name": "callgraph-mcp",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "MCP server for codebase call-flow analysis. Local, deterministic, language-agnostic. Powered by @codeflow-map/core.",
   "keywords": [
     "mcp",
